@@ -32,7 +32,7 @@
  *
  **********************************************************/
 
-#include <stdarg.h>
+//#include <stdarg.h>
 #include "VMsvga2Client.h"
 #include "VMsvga2.h"
 
@@ -40,10 +40,12 @@
 OSDefineMetaClassAndStructors(VMsvga2Client, IOUserClient);
 
 #define LOGPRINTF_PREFIX_STR "log IOFBClient: "
-#define LOGPRINTF_PREFIX_LEN (sizeof(LOGPRINTF_PREFIX_STR) - 1)
+#define LOGPRINTF_PREFIX_LEN (sizeof LOGPRINTF_PREFIX_STR - 1)
 #define LOGPRINTF_PREFIX_SKIP 4				// past "log "
 #define LOGPRINTF_BUF_SIZE 256
-
+enum {
+    kIOUCVariableStructureSize = 0xffffffff
+};
 static IOExternalMethod iofbFuncsCache[3] =
 {
 	{0, reinterpret_cast<IOMethod>(&VMsvga2Client::openUserClient), kIOUCScalarIScalarO, 0, 0},
@@ -59,12 +61,12 @@ void VMsvga2Client::LogPrintf(VMFBIOLog log_level, char const* fmt, ...)
 	if (log_level > m_log_level)
 		return;
 	va_start(ap, fmt);
-	strlcpy(&print_buf[0], LOGPRINTF_PREFIX_STR, sizeof(print_buf));
-	vsnprintf(&print_buf[LOGPRINTF_PREFIX_LEN], sizeof(print_buf) - LOGPRINTF_PREFIX_LEN, fmt, ap);
+	strncpy(&print_buf[0], LOGPRINTF_PREFIX_STR, sizeof print_buf);
+	vsnprintf(&print_buf[LOGPRINTF_PREFIX_LEN], sizeof print_buf - LOGPRINTF_PREFIX_LEN, fmt, ap);
 	va_end(ap);
 	IOLog("%s", &print_buf[LOGPRINTF_PREFIX_SKIP]);
-	if (!VMLog_SendString(&print_buf[0]))
-		IOLog("%s: SendString failed.\n", __FUNCTION__);
+//	if (!VMLog_SendString(&print_buf[0]))
+//		IOLog("%s: SendString failed.\n", __FUNCTION__);
 }
 
 IOReturn VMsvga2Client::clientDied()
@@ -158,7 +160,7 @@ bool VMsvga2Client::initWithTask(task_t owningTask, void* securityToken, UInt32 
 #if 0
 	IOLog("VMsvga2Client::initWithTask(%p, %p, %u)\n", owningTask, securityToken, type);
 #endif
-	m_log_level = 1;
+	m_log_level = 3;
 	m_funcs_cache = 0;
 	if (!super::initWithTask(owningTask, securityToken, type)) {
 		LogPrintf(1, "%s: super initWithTask failed\n", __FUNCTION__);
